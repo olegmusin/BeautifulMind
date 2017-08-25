@@ -1,0 +1,20 @@
+<component name="ArtifactManager">
+  <artifact type="javafx" name="BeautifulMind">
+    <output-path>$PROJECT_DIR$/out/artifacts/BeautifulMind</output-path>
+    <properties id="javafx-properties">
+      <options>
+        <option name="appClass" value="ui.Predictor" />
+        <option name="description" value="" />
+        <option name="htmlPlaceholderId" value="" />
+        <option name="title" value="" />
+        <option name="vendor" value="" />
+        <option name="version" value="" />
+      </options>
+    </properties>
+    <root id="root">
+      <element id="archive" name="BeautifulMind.jar">
+        <element id="module-output" name="BeautifulMind" />
+      </element>
+    </root>
+  </artifact>
+</component>
