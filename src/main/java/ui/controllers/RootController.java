@@ -7,11 +7,17 @@ import javafx.scene.control.Slider;
 import javafx.scene.control.TextField;
 import javafx.stage.FileChooser;
 import neural.Data;
+import neural.DataContext;
+import neural.NetConfiguration;
+import neural.NeuralNet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ui.PredictorApp;
 
 import java.io.File;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 
 public class RootController {
@@ -74,7 +80,7 @@ public class RootController {
 
     }
 
-    public void initTextFieldsInput() {
+    private void initTextFieldsInput() {
         txtBatchSize.textProperty ( ).addListener ( (observable, oldValue, newValue) -> {
             if (newValue.isEmpty ( )) return;
             slrBatchSize.setValue ( Double.parseDouble ( newValue ) );
@@ -113,20 +119,37 @@ public class RootController {
 
     public void startBtnHandler(ActionEvent actionEvent) {
 
-        Data data = new Data ( new File ( textFieldDataFile.getText ( ) ) );
+        try {
 
-        log.info ( "Preparing data..." );
-        final int batchSize = slrBatchSize.valueProperty ( ).intValue ( );
-        final int labelIndex = Integer.parseInt ( txtClassIndex.getText ( ) );
-        final int numClasses = slrNumOfClasses.valueProperty ( ).intValue ( );
+            log.info ( "Preparing data..." );
 
-        data.prepare ( batchSize, labelIndex, numClasses );
+            Map<String, Integer> params = new HashMap<> ( );
+            params.put ( "batchSize", slrBatchSize.valueProperty ( ).intValue ( ) );
+            params.put ( "labelIndex", Integer.parseInt ( txtClassIndex.getText ( ) ) );
+            params.put ( "numClasses", slrNumOfClasses.valueProperty ( ).intValue ( ) );
+
+            DataContext dataContext = new DataContext ( new File ( textFieldDataFile.getText ( ) ), params );
+            dataContext.normalizeData ( );
 
         log.info ( "Training network..." );
-        data.process ( );
+
+            Map<String, Integer> hyperparams = new HashMap<> ( );
+            hyperparams.put ( "inputsNum", dataContext.getTrainData ( ).numInputs ( ) );
+            hyperparams.put ( "outputsNum", dataContext.getTrainData ( ).numOutcomes ( ) );
+            hyperparams.put ( "iterations", slrIterations.valueProperty ( ).intValue ( ) );
+            hyperparams.put ( "seed", 4 );
+
+            NeuralNet nn = new NeuralNet ( new NetConfiguration ( hyperparams ) );
+            nn.train ( dataContext.getTrainData ( ) );
 
         log.info ( "Classifying test data..." );
-        data.classify ( numClasses );
+
+            nn.classify ( dataContext.getTestData ( ), Integer.parseInt ( txtNumOfClasses.getText ( ) ) );
+
+        } catch (IOException | InterruptedException e) {
+            e.printStackTrace ( );
+        }
+
 
     }
 
